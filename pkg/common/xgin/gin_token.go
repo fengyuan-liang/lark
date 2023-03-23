@@ -12,7 +12,7 @@ func GetToken(ctx *gin.Context) (token string, expire int64) {
 		tk    *jwt.Token
 		key   string
 		value interface{}
-		exp   int
+		exp   int // jwt过期时间
 		err   error
 	)
 	token, err = ctx.Cookie("jwt")

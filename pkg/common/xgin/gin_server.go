@@ -16,7 +16,7 @@ func NewGinServer() *GinServer {
 	)
 	gin.SetMode(gin.ReleaseMode)
 	engine = gin.New()
-	// 1、使用 Recovery 中间件
+	// 1、使用 Recovery 中间件，捕获异常
 	engine.Use(gin.Recovery())
 	// 2、跨域
 	//engine.Use(middleware.Cors())

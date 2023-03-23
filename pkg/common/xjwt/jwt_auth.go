@@ -16,6 +16,7 @@ const (
 	JWT_KEY_IAT = "iat"
 )
 
+// CreateToken access表示是否为访问token，这里分为访问token和刷新token
 func CreateToken(uid int64, platform int32, access bool, expiresIn int) (t *JwtToken, err error) {
 	t = new(JwtToken)
 	var (
