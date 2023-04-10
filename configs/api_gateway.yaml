@@ -11,9 +11,9 @@ etcd:
   write_timeout: 5000
   dial_timeout: 5000
 redis:
-  address: ["lark-redis:63791"]
+  address: ["volunteer.fengxianhub.top:20012"]
   db: 0
-  password: lark2022
+  password: ""
   prefix: "LK:"
 auth_server:
   name: lark_auth_server

@@ -6,10 +6,12 @@ import (
 )
 
 func Register(engine *gin.Engine) {
-	//engine.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	// engine.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	// 此路由组下不需要鉴权
 	publicGroup := engine.Group("open")
 	registerPublicRoutes(publicGroup)
 
+	// 需要鉴权
 	privateGroup := engine.Group("api")
 	registerPrivateRouter(privateGroup)
 }

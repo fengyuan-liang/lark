@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"lark/pkg/common/xjwt"
+	"lark/pkg/entity/vo/response"
 )
 
 func main() {
@@ -15,7 +16,7 @@ func main() {
 
 func hello(ctx *gin.Context) {
 	fmt.Println("访问了hello的api")
-	ctx.SecureJSON(200, "访问成功")
+	ctx.SecureJSON(200, response.Ok)
 }
 
 func JwtAuth() gin.HandlerFunc {
@@ -23,7 +24,8 @@ func JwtAuth() gin.HandlerFunc {
 		token, err := xjwt.ParseFromCookie(ctx)
 		if err != nil {
 			ctx.Abort()
-			ctx.SecureJSON(601, "验证失败")
+			ctx.SecureJSON(-1, response.AppErr.WithMsg("请登录"))
+			return
 		}
 		fmt.Println("验证成功", token)
 	}

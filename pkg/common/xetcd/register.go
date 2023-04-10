@@ -32,7 +32,7 @@ var (
 	rEtcd *RegEtcd
 )
 
-// "%s:///%s/"
+// GetPrefix "%s:///%s/"
 func GetPrefix(schema, serviceName string) string {
 	return fmt.Sprintf("%s:///%s/", schema, serviceName)
 }

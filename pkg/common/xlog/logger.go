@@ -33,6 +33,7 @@ const (
 	DefaultDirectory = "lark"
 )
 
+// CallerDepth 打印日志的深度，防止嵌套调用zap行数不正确
 const (
 	CallerDepth = 8
 )

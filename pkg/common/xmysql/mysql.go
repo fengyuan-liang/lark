@@ -41,7 +41,7 @@ func GetTX() *gorm.DB {
 	return GetDB().Begin()
 }
 
-//事务处理
+// 事务处理
 func Transaction(handle func(tx *gorm.DB) (err error)) (err error) {
 	var (
 		db *gorm.DB
@@ -90,11 +90,11 @@ func ConnectDB(cfg *conf.Mysql) (db *gorm.DB, err error) {
 		xlog.Error(err.Error())
 		return
 	}
-	//设置最大空闲连接
+	// 设置最大空闲连接
 	sqlDB.SetMaxIdleConns(cfg.MaxIdleConn)
-	//设置最大连接数
+	// 设置最大连接数
 	sqlDB.SetMaxOpenConns(cfg.MaxOpenConn)
-	//设置连接超时时间
+	// 设置连接超时时间
 	sqlDB.SetConnMaxLifetime(time.Duration(cfg.ConnLifetime) * time.Millisecond)
 	return
 }

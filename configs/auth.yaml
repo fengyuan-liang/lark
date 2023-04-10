@@ -34,7 +34,7 @@ etcd:
   write_timeout: 5000
   dial_timeout: 5000
 mysql:
-  address: "lark-mysql-user:13306"
+  address: "volunter.fengxianhub.top"
   username: root
   password: lark2022
   db: lark_user
