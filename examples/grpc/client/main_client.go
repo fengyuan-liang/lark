@@ -12,7 +12,7 @@ func main() {
 	req := &pb_auth.SignUpReq{
 		Nickname: "张三",
 	}
-	conn, err := grpc.Dial("127.0.0.1:8081", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial("127.0.0.1:6600", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		panic(err)
 	}

@@ -76,19 +76,19 @@ func (r *RegEtcd) Register() (err error) {
 		DialTimeout: 5 * time.Second})
 	if err != nil {
 		xlog.Error(err.Error())
-		return
+		panic(err)
 	}
 
 	ctx, cancel = context.WithCancel(context.Background())
 	resp, err = cli.Grant(ctx, int64(r.ttl))
 	if err != nil {
 		xlog.Error(err.Error())
-		return
+		panic(err)
 	}
 
 	if _, err = cli.Put(ctx, r.serviceKey, r.serviceValue, clientv3.WithLease(resp.ID)); err != nil {
 		xlog.Error(err.Error())
-		return
+		panic(err)
 	}
 	kresp, err = cli.KeepAlive(ctx, resp.ID)
 	if err != nil {

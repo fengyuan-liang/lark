@@ -6,5 +6,7 @@ import (
 )
 
 func TestGetGetUUID(t *testing.T) {
-	fmt.Println(NewUUID())
+	uuid := NewUUID()
+	fmt.Println(uuid)
+	fmt.Println(len(uuid))
 }

@@ -23,7 +23,7 @@ func NewServer(c *conf.Grpc) (srv *grpc.Server, closer io.Closer) {
 		opts       []grpc.ServerOption
 		err        error
 	)
-	//opts = append(opts, grpc.UnaryInterceptor(grpc_recovery.UnaryServerInterceptor(middleware.RecoveryInterceptor())))
+	//opts = append(opts, grpcConf.UnaryInterceptor(grpc_recovery.UnaryServerInterceptor(middleware.RecoveryInterceptor())))
 	opts = append(opts, grpc.UnaryInterceptor(grpc_recovery.UnaryServerInterceptor()))
 
 	keepParams = grpc.KeepaliveParams(keepalive.ServerParameters{

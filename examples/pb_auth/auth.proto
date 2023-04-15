@@ -1,5 +1,6 @@
 syntax = "proto3";
 package pb_auth;
+// option 第一个参数是文件路径  第二个参数为包名
 option go_package = "./pb_auth;pb_auth";
 
 enum PLATFORM_TYPE {

@@ -35,7 +35,6 @@ func init() {
 	config.ServerID = *serverId
 	config.GrpcServer.ServerID = config.ServerID
 	config.GrpcServer.Port = *grpcPort
-
 	xsnowflake.NewSnowflake(config.ServerID)
 	xlog.Shared(config.Log, config.Name+utils.IntToStr(config.ServerID))
 }

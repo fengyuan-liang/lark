@@ -19,6 +19,7 @@ import (
 
 func (s *authService) SignUp(ctx context.Context, req *pb_auth.SignUpReq) (resp *pb_auth.SignUpResp, _ error) {
 	resp = &pb_auth.SignUpResp{UserInfo: &pb_user.UserInfo{Avatar: &pb_user.AvatarInfo{}}}
+	xlog.Infof("SignUp[%v]", utils.ObjToJsonStr(req))
 	var (
 		user   = new(po.User)
 		avatar *po.Avatar
@@ -62,11 +63,8 @@ func (s *authService) SignUp(ctx context.Context, req *pb_auth.SignUpReq) (resp 
 		xlog.Warn(ERROR_CODE_AUTH_INSERT_VALUE_FAILED, ERROR_AUTH_INSERT_VALUE_FAILED, err.Error())
 		return
 	}
-	// 提交
-	tx.Commit()
 	copier.Copy(resp.UserInfo, user)
 	copier.Copy(resp.UserInfo.Avatar, avatar)
-
 	var (
 		accessToken  *pb_auth.Token
 		refreshToken *pb_auth.Token
@@ -75,14 +73,17 @@ func (s *authService) SignUp(ctx context.Context, req *pb_auth.SignUpReq) (resp 
 	if err != nil {
 		resp.Set(ERROR_CODE_AUTH_GENERATE_TOKEN_FAILED, ERROR_AUTH_GENERATE_TOKEN_FAILED)
 		xlog.Warn(ERROR_CODE_AUTH_GENERATE_TOKEN_FAILED, ERROR_AUTH_GENERATE_TOKEN_FAILED, err.Error())
+		// token生成失败，回滚
+		tx.Rollback()
 		return
 	}
 	resp.AccessToken = accessToken
 	resp.RefreshToken = refreshToken
-
 	xants.Submit(func() {
 		s.userCache.SetUserAndServer(s.cfg.Redis.Prefix, resp.UserInfo, user.ServerId)
 	})
+	// 提交
+	tx.Commit()
 	return
 }
 

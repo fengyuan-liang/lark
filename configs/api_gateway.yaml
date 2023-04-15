@@ -11,7 +11,7 @@ etcd:
   write_timeout: 5000
   dial_timeout: 5000
 redis:
-  address: ["volunteer.fengxianhub.top:20012"]
+  address: ["{{ redis url }}"]
   db: 0
   password: ""
   prefix: "LK:"

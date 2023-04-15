@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	jsoniter "github.com/json-iterator/go"
+	"lark/pkg/common/xlog"
 	"strings"
 )
 
@@ -72,4 +73,19 @@ func ObjToMap(in interface{}) map[string]interface{} {
 		}
 	}
 	return maps
+}
+
+func ObjToJsonStr(obj interface{}) (str string) {
+	str = ""
+	var err error
+	if obj == nil {
+		xlog.Error("obj is nil")
+		return
+	}
+	str, err = Marshal(obj)
+	if err != nil {
+		xlog.Error(err)
+		return
+	}
+	return
 }

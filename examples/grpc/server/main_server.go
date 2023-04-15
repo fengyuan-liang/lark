@@ -24,7 +24,7 @@ func (s *AuthServer) Run() {
 		err      error
 	)
 	// 传入一个监听
-	listener, err = net.Listen("tcp", ":8081")
+	listener, err = net.Listen("tcp", ":6600")
 	if err != nil {
 		panic(err)
 	}

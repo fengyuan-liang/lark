@@ -294,6 +294,10 @@ func Info(args ...interface{}) {
 	xLogger().Info(args...)
 }
 
+func Infof(template string, args ...interface{}) {
+	xLogger().Infof(template, args)
+}
+
 func Warn(args ...interface{}) {
 	xLogger().Warn(args...)
 }

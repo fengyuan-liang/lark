@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-nohup redis-server --requirepass lark2022 --appendonly yes &
-sleep 30
+#nohup redis-server --requirepass lark2022 --appendonly yes &
+#sleep 30
 
 redis-cli -h 127.0.0.1 -p 6379 -a lark2022 script load "
 for i=1,  #KEYS do
