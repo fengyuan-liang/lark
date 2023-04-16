@@ -46,7 +46,7 @@ func (s *messageHistoryService) SaveMessage(msg []byte) (err error) {
 
 	// 1、消息缓存
 	xants.Submit(func() {
-		s.chatMessageCache.SetConvoMessage(s.cfg.Redis.Prefix, message)
+		s.chatMessageCache.SetConvoMessage(message)
 	})
 
 	// 2、消息入库
@@ -92,7 +92,8 @@ func (s *messageHistoryService) MessageOperation(msg []byte) (err error) {
 	}
 
 	// 2、更新 message
-	u.SetFilter("srv_msg_id=?", req.Operation.SrvMsgId)
+	u.SetFilter("chat_id=?", req.Operation.ChatId)
+	u.SetFilter("seq_id=?", req.Operation.SeqId)
 	u.Set("status", req.Operation.Opn)
 	err = s.chatMessageRepo.UpdateMessage(u)
 	if err != nil {
