@@ -9,17 +9,18 @@ import (
 	"log"
 	"runtime/debug"
 	"strconv"
-	"sync/atomic"
 	"time"
 )
 
 type Hub struct {
-	serverId         int
-	upgrader         websocket.Upgrader
-	readChan         chan *Message   // 客户端发送的消息
-	msgCallback      MessageCallback // 回调
-	clients          *CliMap         // key:platform-uid
-	sentMessageCount int64
+	serverId       int
+	upgrader       websocket.Upgrader
+	registerChan   chan *Client
+	unregisterChan chan *Client    // 只在Client调用closeConn()函数时触发
+	readChan       chan *Message   // 客户端发送的消息
+	msgCallback    MessageCallback // 回调
+	clients        *CliMap         // key:platform-uid
+	now            time.Time
 }
 
 func NewHub(serverId int, msgCallback MessageCallback) *Hub {
@@ -30,9 +31,12 @@ func NewHub(serverId int, msgCallback MessageCallback) *Hub {
 			WriteBufferSize:   WS_WRITE_BUFFER_SIZE,
 			EnableCompression: false, //关闭压缩
 		},
-		readChan:    make(chan *Message, WS_CHAN_SERVER_READ_MESSAGE_SIZE),
-		msgCallback: msgCallback,
-		clients:     NewCliMap(),
+		registerChan:   make(chan *Client, WS_CHAN_CLIENT_REGISTER_SIZE),
+		unregisterChan: make(chan *Client, WS_CHAN_CLIENT_UNREGISTER_SIZE),
+		readChan:       make(chan *Message, WS_CHAN_SERVER_READ_MESSAGE_SIZE),
+		msgCallback:    msgCallback,
+		clients:        NewCliMap(),
+		now:            time.Now(),
 	}
 }
 
@@ -50,13 +54,9 @@ func (h *Hub) registerClient(client *Client) {
 
 	if client.onlineTs > cli.onlineTs {
 		h.clients.Set(client.key, client)
-		h.close(cli)
+		cli.Close()
 		return
 	}
-	h.close(client)
-}
-
-func (h *Hub) close(client *Client) {
 	client.Close()
 }
 
@@ -82,13 +82,47 @@ func (h *Hub) OnOffline(onOff bool) {
 	}
 }
 
+func (h *Hub) coroutine() {
+	go func() {
+		var (
+			ticker = time.NewTicker(time.Millisecond * 500)
+			now    time.Time
+			ok     bool
+		)
+		defer ticker.Stop()
+		for {
+			select {
+			case now, ok = <-ticker.C:
+				if ok == false {
+					return
+				}
+				h.now = now
+			}
+		}
+	}()
+
+	go func() {
+		var (
+			client *Client
+		)
+		for {
+			select {
+			case client = <-h.registerChan:
+				h.registerClient(client)
+			case client = <-h.unregisterChan:
+				h.unregisterClient(client)
+			}
+		}
+	}()
+}
+
 func (h *Hub) Run() {
 	defer func() {
 		if r := recover(); r != nil {
 			wsLog.Error(r, string(debug.Stack()))
 		}
 	}()
-
+	h.coroutine()
 	// 调试用
 	h.debug()
 
@@ -98,9 +132,12 @@ func (h *Hub) Run() {
 	)
 	for index = 0; index < loop; index++ {
 		go func() {
+			var (
+				msg *Message
+			)
 			for {
 				select {
-				case msg := <-h.readChan:
+				case msg = <-h.readChan:
 					h.msgCallback(msg)
 				}
 			}
@@ -122,14 +159,13 @@ func (h *Hub) SendMessage(uid int64, platform int32, message []byte) (result int
 	if cli, ok = h.clients.Get(clientKey(uid, platform)); ok == false {
 		return
 	}
-	atomic.AddInt64(&h.sentMessageCount, 1)
 	cli.Send(message)
 	result = WS_SEND_MSG_SUCCESS
 	return
 }
 
-func (h *Hub) NumberOfOnline() int64 {
-	return int64(h.clients.Len())
+func (h *Hub) NumberOfOnline() int {
+	return h.clients.Len()
 }
 
 func (h *Hub) broadcastMessage() {
@@ -145,12 +181,12 @@ func (h *Hub) broadcastMessage() {
 
 func (h *Hub) debug() {
 	go func() {
-		allTicker := time.NewTicker(time.Second * 60)
-		defer allTicker.Stop()
+		ticker := time.NewTicker(time.Second * 30)
+		defer ticker.Stop()
 		for {
 			select {
-			case <-allTicker.C:
-				log.Println("在线人数:", h.clients.Len(), " 发送消息数量:", h.sentMessageCount)
+			case <-ticker.C:
+				log.Println("在线人数:", h.clients.Len())
 			}
 		}
 	}()
@@ -197,5 +233,5 @@ func (h *Hub) wsHandler(c *gin.Context) {
 	}
 	client = newClient(h, conn, uid, platform)
 	client.listen()
-	h.registerClient(client)
+	h.registerChan <- client
 }

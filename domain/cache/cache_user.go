@@ -54,7 +54,7 @@ func (c *userCache) DelUserInfo(uid int64) (err error) {
 	var (
 		htk = utils.GetHashTagKey(uid)
 	)
-	err = xredis.CDel([]string{constant.RK_SYNC_USER_INFO + htk, constant.RK_SYNC_BASIC_USER_INFO + htk})
+	err = xredis.CUnlink([]string{constant.RK_SYNC_USER_INFO + htk, constant.RK_SYNC_BASIC_USER_INFO + htk})
 	return
 }
 
@@ -170,7 +170,7 @@ func (c *userCache) SignOut(uid int64, platform pb_enum.PLATFORM_TYPE) (err erro
 		key2        = constant.RK_SYNC_USER_REFRESH_TOKEN_SESSION_ID + htk + ":" + platformStr
 		key3        = constant.RK_SYNC_USER_SERVER + htk
 	)
-	err = xredis.CDel([]string{key1, key2, key3})
+	err = xredis.CUnlink([]string{key1, key2, key3})
 	if err != nil {
 		return
 	}
@@ -200,6 +200,29 @@ func (c *userCache) GetServerId(uid int64) (serverId string, err error) {
 		} else {
 			xlog.Warn(ERROR_CODE_CACHE_REDIS_GET_FAILED, ERROR_CACHE_REDIS_GET_FAILED, err.Error())
 		}
+	}
+	return
+}
+
+func (c *userCache) GetServerIds(uidList []int64) (serverIds []string, err error) {
+	var (
+		i       int
+		uid     int64
+		keys    = make([]string, len(uidList))
+		cmdList = make([]*redis.StringCmd, len(uidList))
+		cmd     *redis.StringCmd
+		pipe    = xredis.Cli.Client.Pipeline()
+	)
+	for i, uid = range uidList {
+		cmdList[i] = pipe.Get(context.Background(), xredis.RealKey(constant.RK_SYNC_USER_SERVER+utils.GetHashTagKey(uid)))
+	}
+	_, err = pipe.Exec(context.Background())
+	if err != nil {
+		return
+	}
+	serverIds = make([]string, len(keys))
+	for i, cmd = range cmdList {
+		serverIds[i] = cmd.Val()
 	}
 	return
 }
